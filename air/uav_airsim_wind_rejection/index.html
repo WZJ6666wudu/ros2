@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html class="writer-html5" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../../img/favicon.ico" rel="shortcut icon"/>
+<title>AirSim 无人机阵风扰动抑制（神经网络补偿） - 模拟器的 ROS 文档</title>
+<link href="../../css/theme.css" rel="stylesheet"/>
+<link href="../../css/theme_extra.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" rel="stylesheet"/>
+<link href="../../extra.css" rel="stylesheet"/>
+<script>
+        // Current page data
+        var mkdocs_page_name = "AirSim \u65e0\u4eba\u673a\u9635\u98ce\u6270\u52a8\u6291\u5236\uff08\u795e\u7ecf\u7f51\u7edc\u8865\u507f\uff09";
+        var mkdocs_page_input_path = "air/uav_airsim_wind_rejection.md";
+        var mkdocs_page_url = null;
+      </script>
+<!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
+<body class="wy-body-for-nav" role="document">
+<div class="wy-grid-for-nav">
+<nav class="wy-nav-side stickynav" data-toggle="wy-nav-shift">
+<div class="wy-side-scroll">
+<div class="wy-side-nav-search">
+<a class="icon icon-home" href="../.."> 模拟器的 ROS 文档
+        </a><div role="search">
+<form action="../../search.html" class="wy-form" id="rtd-search-form" method="get">
+<input aria-label="Search docs" name="q" placeholder="搜索文档" title="Type search term here" type="text"/>
+</form>
+</div>
+</div>
+<div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+<p class="caption"><span class="caption-text">入门</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../..">首页</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ubuntu20.04/">安装 ROS</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">ROS 教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap1/chap1/">1. 认识 ROS</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap2/">2. ROS 基础 - ROS 基础</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap3/">3. 机器人系统设计</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap4/">4. 机器人仿真</a>
+</li>
+<li class="toctree-l1"><a class="reference internal">5. 机器人感知</a>
+<ul>
+<li class="toctree-l2"><a class="reference internal" href="../../chapter/chap5/">章节首页</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../chapter/chap5/lidar_obstacle_nn/">激光雷达 NN 障碍物分类</a>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap6/">6. 机器人 SLAM 与自主导航</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap7/">7. 阿克曼四轮小车运动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap8/">8. ROS 机器人综合应用</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap9/">9. ROS 2</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">人形机器人</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/humanoid_basics/">人形机器人基础</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/panda_keyboard_control/">键盘操控仿真机械臂</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/humanoid_push_recovery/">人形机器人平衡控制与外力抗扰恢复</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/mujoco_hopper_demo/">MuJoCo单足弹跳机器人简单仿真</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">肌肉骨骼人</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../musculoskeletal/musculoskeletal_basics/">肌肉骨骼人基础</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">地面载具</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../set_up_and_connect_to_carla/">手动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_spawn_objects/">生成对象</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_keyboard_control/">地面载具物理仿真与键盘运动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ackermann_control/">阿克曼控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_perception_control/">传感器感知与给定轨迹跟踪（神经网络版）</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/r2d2_cruise/">R2D2小车 自动巡航</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/waypoint/">路径点发布器</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ad_agent/">自动驾驶代理</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ad_demo/">自动驾驶示例</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/rostopic_cruise/">rostopic 手动驱动</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ros_scenario_runner/">ROS Scenario Runner</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/rviz_plugin/">RVIZ Carla 插件</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_tsr_ros/">交通标志识别 ROS 封装</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/vehicle_pygame_teleop/">车辆键盘遥操作与二维模拟</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/car_2d_target_tracker/">2D 小车目标追踪仿真</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_nn_car_following/">神经网络自适应跟车(ACC)</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/weather_perception_benchmark/">恶劣雨雾天气下相机感知性能对比实验</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">空域载具</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../flight_pattern_recognition/">无人机飞行轨迹类型识别与 ROS2 自动任务日志</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry_diagnostics/">无人机遥测异常检测与 ROS2 在线诊断</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../setup_and_connect/">建立虚拟机和空域载具之间的连接</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ros_pkgs/">空域模拟器的 ROS 封装器</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../carlair_ros_bridge/">无人机与 ROS 的桥接模块</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../rooftop_landing/">无人机屋顶降落</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_keyboard_control/">无人机键盘控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_ppo_nav/">基于 PPO 的无人机导航避障</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_rl_benchmark/">强化学习对比实验（PPO/SAC/TD3）</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../drone_teleop/">无人机终端键盘遥控器</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../drone_ros_teleop/">基于 ROS 消息解耦的无人机键盘遥控</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../state_prediction/">基于 GRU 的无人机飞行状态预测与 ROS2 在线误差分析</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_mujoco_sim/">MuJoCo 四旋翼仿真与 ROS2 桥接底座</a>
+</li>
+<li class="toctree-l1"><a class="" href="https://openhutb.github.io/air_doc/airsim_tutorial_pkgs/">低空载具的 ROS 示例教程</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ap_cpp_overfomo/">AP-CPP 主动感知覆盖路径规划</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../waypoint_tracking/">无人机航点轨迹跟踪（PID 控制）</a>
+</li>
+<li class="toctree-l1"><a class="reference internal">空域载具八叉树三维寻路</a>
+<ul>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/env_setup/">环境配置与前置准备</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/flight_control/">AirSim 载具与位置控制</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/occupancy_mapping/">点云转八叉树占用地图</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/astar_planning/">八叉树上的 A* 全局寻路</a>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../openhutb_yolo_mlp_control/">YOLO目标检测与八字轨迹控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../no_fly_zone_check/">禁飞区检测</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../allocnet_teleop/">AllocNet 四旋翼避障规划与键盘遥操作</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">水域载具</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../water/HoloOcean/">水域载具 ROS2 接口</a>
+</li>
+<li class="toctree-l1"><a class="reference internal">环境搭建</a>
+<ul>
+<li class="toctree-l2"><a class="reference internal" href="../../water/HoloOcean-Windows-Setup/">HoloOcean Windows 本机环境搭建</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../water/WSL_HoloOcean2_ROS2/">WSL跑通HoloOcean2的ROS2示例方法</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../water/docker/">Docker 开发环境</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../water/docker_runtime/">HoloOcean ROS2 运行时容器</a>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/holoocean_examples/">水域载具示例</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/rov_physical_simulation/">水下机器人物理仿真与 6-DOF 键盘运动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/rov_trajectory_tracking/">水下多传感器感知与 3D 轨迹跟踪控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/rov_sonar_slam_navigation/">水下声呐 SLAM 占据栅格建图与自主避障导航</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/underwater_sonar_mapping/">新增水下三维地形测绘模块</a>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ubuntu2004-local-llm-deploy/">自装ubuntu20.04本地大模型部署教程</a>
+</li>
+</ul>
+</div>
+</div>
+</nav>
+<section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+<nav aria-label="Mobile navigation menu" class="wy-nav-top" role="navigation">
+<i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+<a href="../..">模拟器的 ROS 文档</a>
+</nav>
+<div class="wy-nav-content">
+<div class="rst-content"><div aria-label="breadcrumbs navigation" role="navigation">
+<ul class="wy-breadcrumbs">
+<li><a aria-label="Docs" class="icon icon-home" href="../.."></a></li>
+<li class="breadcrumb-item active">AirSim 无人机阵风扰动抑制（神经网络补偿）</li>
+<li class="wy-breadcrumbs-aside">
+<a href="https://github.com/OpenHUTB/ros2/edit/master/docs/air/uav_airsim_wind_rejection.md"> 编辑页面</a>
+</li>
+</ul>
+<hr/>
+</div>
+<div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+<div class="section" itemprop="articleBody">
+<div><h1 id="airsim">AirSim 无人机阵风扰动抑制（神经网络补偿）</h1>
+<h2 id="1">1. 任务与定位</h2>
+<p>课程任务 ① 要求完成「物理仿真控制」。本项目在 AirSim 的 Blocks 场景中给多旋翼无人机注入持续侧风，训练一个神经网络，仅依据机载 IMU 与位置误差实时输出补偿速度，把被风吹走的无人机拉回悬停点。</p>
+<p>与仓库已有的 17 个无人机模块均不重复：<code>uav_mujoco_sim</code> 用 MuJoCo 且不含扰动抑制，<code>uav_keyboard_control</code> 是纯键盘映射，本模块是<strong>外扰下的闭环补偿学习</strong>。</p>
+<h2 id="2">2. 演示</h2>
+<p><img alt="demo" src="../../img/uav/wind_reject/demo.gif"/></p>
+<p>动图由 <code>simGetImages(ImageType.Scene)</code> 逐帧截取真实 Blocks 画面合成，150 帧，3.9 MB。画面中无人机顶着 15 m/s 侧风悬停，可见方块墙随位移滑动。</p>
+<h2 id="3">3. 问题描述</h2>
+<p>设无人机在水平面的位置为 $\mathbf{p}=(x,y)$，目标悬停点 $\mathbf{p}^*=(x^*,y^*)$，外部风场 $\mathbf{w}=(w_x,w_y)$。</p>
+<p>无补偿时无人机被风推走，位置误差 $\mathbf{e}=\mathbf{p}^*-\mathbf{p}$ 持续增大。目标是在每个控制周期 $\Delta t=0.25$ s 内输出补偿速度 $\mathbf{u}=(u_x,u_y)$，使 $|\mathbf{e}|$ 有界。</p>
+<h2 id="4">4. 专家策略（标签来源）</h2>
+<p>专家能看到真实风速（特权信息），控制律为</p>
+<p>
+<script type="math/tex; mode=display">
+\mathbf{u}=\mathrm{clip}\big(K_p\,\mathbf{e}-K_d\,\mathbf{v}-k_w\,\mathbf{w},\;[-u_{\max},u_{\max}]\big)
+</script>
+</p>
+<p>其中 $\mathbf{v}$ 由相邻两帧位置差分估计，$K_p=0.55$、$K_d=0.20$、$u_{\max}=3.0$ m/s。</p>
+<p><strong>关键标定</strong>：理想情况下 $k_w=1$（完全前馈抵消），但实测 SimpleFlight 内置速度环已经把绝大部分风抵消掉了——20 m/s 的风只产生约 1.6 m/s 的等效漂移。因此实际标定为 $k_w=0.08$，若按 1.0 会把无人机反向推飞。</p>
+<h2 id="5">5. 神经网络</h2>
+<p>网络看不到风速，只能看到 IMU 与位置误差。</p>
+<p>输入：IMU 5 帧滑动窗口，每帧 6 轴（加速度 3 + 角速度 3），加位置误差 2 维，共 <strong>32 维</strong>。</p>
+<p>
+<script type="math/tex; mode=display">
+\mathbf{h}_1=\tanh(\mathbf{W}_1\mathbf{x}+\mathbf{b}_1),\quad
+\mathbf{u}=\mathbf{W}_2\mathbf{h}_1+\mathbf{b}_2
+</script>
+</p>
+<p>结构：32 → 32 → 2，隐藏层 tanh，输出线性，共 1122 个参数。</p>
+<p>标准化：每维输入按训练集均值方差归一化（风下加速度与角速度尺度差一个量级，不归一化会让 tanh 饱和）。</p>
+<p>损失：均方误差 + L2 正则</p>
+<p>
+<script type="math/tex; mode=display">
+\mathcal{L}=\frac{1}{N}\sum_i\|\hat{\mathbf{u}}_i-\mathbf{u}_i\|^2+\lambda\sum_l\|\mathbf{W}_l\|^2,\quad \lambda=10^{-3}
+</script>
+</p>
+<p>优化器：Adam，学习率 $2\times10^{-3}$，批大小 16，120 轮，按验证集 MSE 保留最优权重。</p>
+<h2 id="6">6. 算法流程</h2>
+<div class="highlight"><pre><span></span><code>初始化：连接 AirSim，切多旋翼模式，起飞到 (0,0,-5)
+循环 每个回合（6 回合）：
+    随机风速 8~18 m/s、随机方向、含 ±2 m/s 垂直分量
+    simSetWind 注入
+    循环 每步（100 步）：
+        读 IMU -&gt; 压入 5 帧滑窗（30 维）
+        读位置 -&gt; 算位置误差 e（2 维）
+        专家按 PD + 风速前馈算出补偿 u
+        记录 (IMU 窗口 + e, u)
+        下发 u，等待 0.25 s
+训练：
+   85/15 划分，逐样本累积梯度，Adam 更新，按验证 MSE 留最优
+部署：
+   每步读 IMU + 位置误差 -&gt; 网络 -&gt; 补偿速度 -&gt; 下发
+</code></pre></div>
+<h2 id="7">7. 实验结果</h2>
+<p>同一条 15 m/s 侧风（方向 -5 m/s 侧偏）下运行 120~150 步：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>平均偏移</th>
+<th>最大偏移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不补偿（AirSim 自身速度环）</td>
+<td>14.68 m</td>
+<td>22.80 m</td>
+</tr>
+<tr>
+<td>神经网络补偿</td>
+<td><strong>3.42 m</strong></td>
+<td><strong>5.00 m</strong></td>
+</tr>
+</tbody>
+</table>
+<p>平均偏移降低 77%，最大偏移降低 78%。</p>
+<p>离线训练：600 条样本，验证 MSE $3.7\times10^{-4}$，R² <strong>0.997</strong>。</p>
+<h2 id="8">8. 源码解析</h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>关键内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>env.py</code></td>
+<td><code>WindEnv.imu()</code> 取 6 轴；<code>imu_window()</code> 维护 5 帧 deque，首帧复制补齐；<code>set_wind()</code> 调 <code>simSetWind</code>；<code>apply_velocity()</code> 用 <code>moveByVelocityAsync</code> 下发世界系速度，高度用 <code>vz=clip(0.8*(z_t-z),±1.5)</code> 闭环</td>
+</tr>
+<tr>
+<td><code>policy.py</code></td>
+<td><code>expert_action()</code> 实现 PD + 前馈，<code>encode/decode</code> 做 [-1,1] 归一化</td>
+</tr>
+<tr>
+<td><code>mlp.py</code></td>
+<td><code>MLP.forward/backward</code> 逐样本用 <code>np.outer</code> 累积梯度；<code>Adam.step</code> 带偏差修正</td>
+</tr>
+<tr>
+<td><code>dataset.py</code></td>
+<td><code>collect()</code> 每回合随机风，0.12/0.13 s 交错采样与执行；存 X 标准化结果和 x_mean/x_std</td>
+</tr>
+<tr>
+<td><code>train.py</code></td>
+<td>85/15 划分、L2 权重衰减、按验证 MSE 留最优、报 R²</td>
+</tr>
+<tr>
+<td><code>demo.py</code></td>
+<td><code>run_demo()</code> 用网络闭环并逐帧取图；<code>to_gif()</code> 超 10 MB 自动抽帧；<code>run_baseline()</code> 做无补偿对照</td>
+</tr>
+<tr>
+<td><code>node.py</code></td>
+<td>订阅 <code>/uav/imu</code>、<code>/uav/pose</code>，发布 <code>/uav/wind_cmd</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="9">9. 复现说明</h2>
+<p>环境：Ubuntu 20.04 / ROS 2 Humble（仿真端 Windows + AirSim 1.8.1 Blocks 预编译包）。</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. 启动 Blocks（约 16~45 秒后 41451 才监听）</span>
+<span class="c1">#    C:\AirSim\Blocks\Blocks\WindowsNoEditor\Blocks.exe</span>
+<span class="c1"># 2. 确认端口</span>
+<span class="c1">#    Get-NetTCPConnection -LocalPort 41451   # 必须是 Listen</span>
+<span class="c1"># 3. 采集（约 3 分钟）</span>
+<span class="nb">cd</span><span class="w"> </span>src/air/uav_airsim_wind_rejection
+python3<span class="w"> </span>main.py<span class="w"> </span>--collect<span class="w"> </span>--episodes<span class="w"> </span><span class="m">6</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">100</span>
+<span class="c1"># 4. 训练（约 1 分钟）</span>
+python3<span class="w"> </span>main.py<span class="w"> </span>--train<span class="w"> </span>--epochs<span class="w"> </span><span class="m">120</span>
+<span class="c1"># 5. 对照实验</span>
+python3<span class="w"> </span>main.py<span class="w"> </span>--baseline<span class="w"> </span>--steps<span class="w"> </span><span class="m">120</span><span class="w"> </span>--wind_x<span class="w"> </span><span class="m">15</span><span class="w"> </span>--wind_y<span class="w"> </span>-5
+<span class="c1"># 6. 演示并录 gif</span>
+python3<span class="w"> </span>main.py<span class="w"> </span>--demo<span class="w"> </span>--steps<span class="w"> </span><span class="m">150</span><span class="w"> </span>--gif<span class="w"> </span>demo.gif<span class="w"> </span>--wind_x<span class="w"> </span><span class="m">15</span><span class="w"> </span>--wind_y<span class="w"> </span>-5
+</code></pre></div>
+<p>预期输出与本文第 7 节表格一致（数值会有小幅随机波动）。</p>
+<p>ROS 2：</p>
+<div class="highlight"><pre><span></span><code>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>uav_airsim_wind_rejection
+<span class="nb">source</span><span class="w"> </span>install/setup.bash
+ros2<span class="w"> </span>launch<span class="w"> </span>uav_airsim_wind_rejection<span class="w"> </span>main.launch.py
+</code></pre></div>
+<h2 id="10">10. 踩坑记录</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>现象</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>专家越补偿无人机飞得越远</td>
+<td>风前馈符号取反了，与风向同向</td>
+<td>改为 <code>-k_w*wind</code>，逆风出力</td>
+</tr>
+<tr>
+<td>2</td>
+<td>反向冲到 +2.7 m</td>
+<td>位置误差项与风前馈叠加后 clip 饱和</td>
+<td>降 $K_p$ 与 $k_w$</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2.8 m/s 风几乎吹不动无人机</td>
+<td>SimpleFlight 内置速度环抗风极强</td>
+<td>加大到 8~18 m/s，并按实测重标定 $k_w=0.08$</td>
+</tr>
+<tr>
+<td>4</td>
+<td>不补偿时只漂 0.2 m</td>
+<td>同上，小风被完全抵消</td>
+<td>用 15 m/s 做演示，对照组漂 14.7 m</td>
+</tr>
+<tr>
+<td>5</td>
+<td>补偿指令执行打折</td>
+<td><code>moveByVelocityAsync</code> 有加减速延迟</td>
+<td>每步 0.25 s，采样与执行交错</td>
+</tr>
+<tr>
+<td>6</td>
+<td>高度持续下沉</td>
+<td><code>hoverAsync</code> 不锁高度</td>
+<td><code>vz=clip(0.8*(z_t-z),±1.5)</code> 闭环</td>
+</tr>
+<tr>
+<td>7</td>
+<td>网络 R² 虚高到 0.997</td>
+<td>输入含位置误差，网络直接学到线性反馈</td>
+<td>如实记录：风的辨识只占输出的很小一部分</td>
+</tr>
+</tbody>
+</table>
+<h2 id="11">11. 局限与改进方向</h2>
+<ol>
+<li><strong>补偿强度略不足</strong>：演示末段仍有约 4 m 残留偏移，把 $u_{\max}$ 提到 4 m/s 可进一步压低。</li>
+<li><strong>网络学的是反馈映射</strong>：因为输入里有位置误差，R² 0.997 反映的是对 PD 律的拟合，而非纯粹的扰动辨识。若要强迫网络从 IMU 辨识风，应去掉位置误差输入并改用强化学习。</li>
+<li><strong>风模型简化</strong>：<code>simSetWind</code> 是恒定风，未覆盖阵风与湍流；真实阵风需要时变风场。</li>
+<li><strong>单机型</strong>：仅在 SimpleFlight 上验证，PX4 SITL 的风响应特性不同，前馈系数需重新标定。</li>
+</ol></div>
+</div>
+</div><footer>
+<hr/>
+<div role="contentinfo">
+<!-- Copyright etc -->
+<p>OpenHUTB 版权所有 © 2026</p>
+</div>
+</footer>
+</div>
+</div>
+</section>
+</div>
+<div aria-label="Versions" class="rst-versions" role="note">
+<span class="rst-current-version" data-toggle="rst-current-version">
+<span>
+<a href="https://github.com/OpenHUTB/ros2" style="color: #fcfcfc">OpenHUTB</a>
+</span>
+</span>
+</div>
+<script src="../../js/jquery-3.6.0.min.js"></script>
+<script>var base_url = "../..";</script>
+<script src="../../js/theme_extra.js"></script>
+<script src="../../js/theme.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-sequence-diagrams/1.0.6/sequence-diagram-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script>
+<script src="../../js/umlconvert.js"></script>
+<script src="../../search/main.js"></script>
+<script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+</body>
+</html>
