@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+
+<html class="writer-html5" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="../../img/favicon.ico" rel="shortcut icon"/>
+<title>基于 IMU 时序的无人机姿态角神经网络估计（AirSim 仿真） - 模拟器的 ROS 文档</title>
+<link href="../../css/theme.css" rel="stylesheet"/>
+<link href="../../css/theme_extra.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" rel="stylesheet"/>
+<link href="../../extra.css" rel="stylesheet"/>
+<script>
+        // Current page data
+        var mkdocs_page_name = "\u57fa\u4e8e IMU \u65f6\u5e8f\u7684\u65e0\u4eba\u673a\u59ff\u6001\u89d2\u795e\u7ecf\u7f51\u7edc\u4f30\u8ba1\uff08AirSim \u4eff\u771f\uff09";
+        var mkdocs_page_input_path = "air/uav_airsim_attitude_estimator.md";
+        var mkdocs_page_url = null;
+      </script>
+<!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</head>
+<body class="wy-body-for-nav" role="document">
+<div class="wy-grid-for-nav">
+<nav class="wy-nav-side stickynav" data-toggle="wy-nav-shift">
+<div class="wy-side-scroll">
+<div class="wy-side-nav-search">
+<a class="icon icon-home" href="../.."> 模拟器的 ROS 文档
+        </a><div role="search">
+<form action="../../search.html" class="wy-form" id="rtd-search-form" method="get">
+<input aria-label="Search docs" name="q" placeholder="搜索文档" title="Type search term here" type="text"/>
+</form>
+</div>
+</div>
+<div aria-label="Navigation menu" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+<p class="caption"><span class="caption-text">入门</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../..">首页</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ubuntu20.04/">安装 ROS</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">ROS 教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap1/chap1/">1. 认识 ROS</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap2/">2. ROS 基础 - ROS 基础</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap3/">3. 机器人系统设计</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap4/">4. 机器人仿真</a>
+</li>
+<li class="toctree-l1"><a class="reference internal">5. 机器人感知</a>
+<ul>
+<li class="toctree-l2"><a class="reference internal" href="../../chapter/chap5/">章节首页</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../chapter/chap5/lidar_obstacle_nn/">激光雷达 NN 障碍物分类</a>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap6/">6. 机器人 SLAM 与自主导航</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap7/">7. 阿克曼四轮小车运动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap8/">8. ROS 机器人综合应用</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../chapter/chap9/">9. ROS 2</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">人形机器人</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/humanoid_basics/">人形机器人基础</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/panda_keyboard_control/">键盘操控仿真机械臂</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/humanoid_push_recovery/">人形机器人平衡控制与外力抗扰恢复</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../humanoid/mujoco_hopper_demo/">MuJoCo单足弹跳机器人简单仿真</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">肌肉骨骼人</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../musculoskeletal/musculoskeletal_basics/">肌肉骨骼人基础</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">地面载具</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../set_up_and_connect_to_carla/">手动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_spawn_objects/">生成对象</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_keyboard_control/">地面载具物理仿真与键盘运动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ackermann_control/">阿克曼控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_perception_control/">传感器感知与给定轨迹跟踪（神经网络版）</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/r2d2_cruise/">R2D2小车 自动巡航</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/waypoint/">路径点发布器</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ad_agent/">自动驾驶代理</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ad_demo/">自动驾驶示例</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/rostopic_cruise/">rostopic 手动驱动</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/ros_scenario_runner/">ROS Scenario Runner</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/rviz_plugin/">RVIZ Carla 插件</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_tsr_ros/">交通标志识别 ROS 封装</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/vehicle_pygame_teleop/">车辆键盘遥操作与二维模拟</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/car_2d_target_tracker/">2D 小车目标追踪仿真</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/carla_nn_car_following/">神经网络自适应跟车(ACC)</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ground/weather_perception_benchmark/">恶劣雨雾天气下相机感知性能对比实验</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">空域载具</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../flight_pattern_recognition/">无人机飞行轨迹类型识别与 ROS2 自动任务日志</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../telemetry_diagnostics/">无人机遥测异常检测与 ROS2 在线诊断</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../setup_and_connect/">建立虚拟机和空域载具之间的连接</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ros_pkgs/">空域模拟器的 ROS 封装器</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../carlair_ros_bridge/">无人机与 ROS 的桥接模块</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../rooftop_landing/">无人机屋顶降落</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_keyboard_control/">无人机键盘控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_ppo_nav/">基于 PPO 的无人机导航避障</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_rl_benchmark/">强化学习对比实验（PPO/SAC/TD3）</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../drone_teleop/">无人机终端键盘遥控器</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../drone_ros_teleop/">基于 ROS 消息解耦的无人机键盘遥控</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../state_prediction/">基于 GRU 的无人机飞行状态预测与 ROS2 在线误差分析</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../uav_mujoco_sim/">MuJoCo 四旋翼仿真与 ROS2 桥接底座</a>
+</li>
+<li class="toctree-l1"><a class="" href="https://openhutb.github.io/air_doc/airsim_tutorial_pkgs/">低空载具的 ROS 示例教程</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ap_cpp_overfomo/">AP-CPP 主动感知覆盖路径规划</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../waypoint_tracking/">无人机航点轨迹跟踪（PID 控制）</a>
+</li>
+<li class="toctree-l1"><a class="reference internal">空域载具八叉树三维寻路</a>
+<ul>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/env_setup/">环境配置与前置准备</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/flight_control/">AirSim 载具与位置控制</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/occupancy_mapping/">点云转八叉树占用地图</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../octree_uav_3d_pathfinding/astar_planning/">八叉树上的 A* 全局寻路</a>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../openhutb_yolo_mlp_control/">YOLO目标检测与八字轨迹控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../no_fly_zone_check/">禁飞区检测</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../allocnet_teleop/">AllocNet 四旋翼避障规划与键盘遥操作</a>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">水域载具</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../water/HoloOcean/">水域载具 ROS2 接口</a>
+</li>
+<li class="toctree-l1"><a class="reference internal">环境搭建</a>
+<ul>
+<li class="toctree-l2"><a class="reference internal" href="../../water/HoloOcean-Windows-Setup/">HoloOcean Windows 本机环境搭建</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../water/WSL_HoloOcean2_ROS2/">WSL跑通HoloOcean2的ROS2示例方法</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../water/docker/">Docker 开发环境</a>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../water/docker_runtime/">HoloOcean ROS2 运行时容器</a>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/holoocean_examples/">水域载具示例</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/rov_physical_simulation/">水下机器人物理仿真与 6-DOF 键盘运动控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/rov_trajectory_tracking/">水下多传感器感知与 3D 轨迹跟踪控制</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/rov_sonar_slam_navigation/">水下声呐 SLAM 占据栅格建图与自主避障导航</a>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../water/underwater_sonar_mapping/">新增水下三维地形测绘模块</a>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ubuntu2004-local-llm-deploy/">自装ubuntu20.04本地大模型部署教程</a>
+</li>
+</ul>
+</div>
+</div>
+</nav>
+<section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+<nav aria-label="Mobile navigation menu" class="wy-nav-top" role="navigation">
+<i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+<a href="../..">模拟器的 ROS 文档</a>
+</nav>
+<div class="wy-nav-content">
+<div class="rst-content"><div aria-label="breadcrumbs navigation" role="navigation">
+<ul class="wy-breadcrumbs">
+<li><a aria-label="Docs" class="icon icon-home" href="../.."></a></li>
+<li class="breadcrumb-item active">基于 IMU 时序的无人机姿态角神经网络估计（AirSim 仿真）</li>
+<li class="wy-breadcrumbs-aside">
+<a href="https://github.com/OpenHUTB/ros2/edit/master/docs/air/uav_airsim_attitude_estimator.md"> 编辑页面</a>
+</li>
+</ul>
+<hr/>
+</div>
+<div class="document" itemscope="itemscope" itemtype="http://schema.org/Article" role="main">
+<div class="section" itemprop="articleBody">
+<div><h1 id="imu-airsim">基于 IMU 时序的无人机姿态角神经网络估计（AirSim 仿真）</h1>
+<h2 id="1">1. 任务与定位</h2>
+<p>姿态解算是无人机状态估计的核心环节：飞控需要实时知道机体的横滚角 <code>roll</code> 与俯仰角 <code>pitch</code>，才能把期望的推力矢量正确分解到世界坐标系，也才能在自动驾驶中判断"我正在往哪边倾"。</p>
+<p>传统做法有两类：</p>
+<ul>
+<li><strong>互补滤波 / Madgwick / Mahony</strong>：用陀螺仪积分得到短期姿态，用加速度计的重力方向做长期校正，两者按权重融合。依赖人工设定的融合系数，在持续加速时会被运动加速度带偏。</li>
+<li><strong>卡尔曼滤波 / EKF</strong>：把姿态作为状态量做最优估计，需要准确的噪声协方差建模，参数标定工作量不小。</li>
+</ul>
+<p>本模块走第三条路：<strong>把姿态解算当作一个回归问题，用神经网络从 IMU 的短时序窗直接学出 <code>roll</code> / <code>pitch</code></strong>。网络一次性看到 5 帧共 30 维读数（含角速度与加速度），既拿到了陀螺仪的短期变化趋势，也拿到了加速度计的重力方向约束，实际上是把"互补滤波里的融合逻辑"交给数据自己学。</p>
+<p>具体设定：</p>
+<ul>
+<li>传感器：<code>getImuData()</code> 一次读 6 轴，取最近 5 帧拼成 30 维输入</li>
+<li>网络：<code>30 → 32 → 2</code> 的 MLP，tanh 隐层、线性输出</li>
+<li>输出：<code>roll</code>、<code>pitch</code>（弧度）</li>
+<li>标签：<code>kinematics_estimated.orientation</code> 四元数解算出的欧拉角，仅用于监督</li>
+</ul>
+<p>与仓库内 <code>uav_airsim_imu_velocity_estimator</code> 的区别：那个模块用同一套 IMU 窗回归<strong>速度标量</strong>（1 维），本模块回归<strong>姿态角</strong>（2 维）。二者输入相同、输出互补，可以并列构成 IMU-only 的状态估计器——一个给"飞多快"，一个给"倾斜多少"。</p>
+<h2 id="2">2. 演示动图</h2>
+<p><img alt="姿态估计演示" src="../../img/uav/attitude/demo.gif"/></p>
+<p>无人机在 Blocks 场景里沿螺旋航线飞行（偏航速率随时间正弦变化，机体随之侧倾），每一步取当前 IMU 窗送进网络，把估计出的 <code>roll</code> / <code>pitch</code> 与 AirSim 真值对比。画面是 AirSim 前视相机每步真实截取的一帧，共 150 步加 10 帧降落补充。</p>
+<p>实飞结果：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>演示步数</td>
+<td>150</td>
+</tr>
+<tr>
+<td>gif 帧数 / 大小</td>
+<td>160 帧 / 3.9 MB</td>
+</tr>
+<tr>
+<td>roll MAE</td>
+<td>0.018 rad（1.0°）</td>
+</tr>
+<tr>
+<td>pitch MAE</td>
+<td>0.015 rad（0.9°）</td>
+</tr>
+<tr>
+<td>平均 MAE</td>
+<td><strong>0.9°</strong></td>
+</tr>
+</tbody>
+</table>
+<p>采样点对比如下，可见估计值始终贴着真值走，没有偏移或滞后：</p>
+<table>
+<thead>
+<tr>
+<th>step</th>
+<th>真值 roll / pitch</th>
+<th>估计 roll / pitch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0.000 / 0.000</td>
+<td>−0.002 / −0.043</td>
+</tr>
+<tr>
+<td>25</td>
+<td>0.046 / 0.011</td>
+<td>0.021 / 0.024</td>
+</tr>
+<tr>
+<td>50</td>
+<td>−0.055 / −0.003</td>
+<td>−0.030 / −0.016</td>
+</tr>
+<tr>
+<td>75</td>
+<td>0.060 / 0.033</td>
+<td>0.027 / 0.037</td>
+</tr>
+<tr>
+<td>100</td>
+<td>−0.039 / 0.030</td>
+<td>−0.045 / 0.035</td>
+</tr>
+<tr>
+<td>125</td>
+<td>0.007 / 0.028</td>
+<td>0.009 / 0.020</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3">3. 问题定义</h2>
+<p>记第 <code>t</code> 步的 IMU 读数为</p>
+<p>
+<script type="math/tex; mode=display">
+\mathbf{u}_t = [a_x, a_y, a_z, \omega_x, \omega_y, \omega_z]^\top \in \mathbb{R}^6
+</script>
+</p>
+<p>其中 <code>a</code> 为线加速度（m/s²），<code>ω</code> 为角速度（rad/s）。输入取最近 <code>W = 5</code> 帧拼接：</p>
+<p>
+<script type="math/tex; mode=display">
+\mathbf{x}_t = [\mathbf{u}_{t-4}^\top, \mathbf{u}_{t-3}^\top, \dots, \mathbf{u}_t^\top]^\top \in \mathbb{R}^{30}
+</script>
+</p>
+<p>真值姿态由 AirSim 的姿态四元数 <code>q = (w, x, y, z)</code> 按 ZYX 顺序解算：</p>
+<p>
+<script type="math/tex; mode=display">
+\text{roll} = \arctan_2\!\big(2(wx + yz),\ 1 - 2(x^2 + y^2)\big)
+</script>
+</p>
+<p>
+<script type="math/tex; mode=display">
+\text{pitch} = \arcsin\!\big(\mathrm{clip}(2(wy - zx),\ -1,\ 1)\big)
+</script>
+</p>
+<p>标签记为 <code>y_t = [roll_t, pitch_t]ᵀ ∈ R²</code>。网络要学的映射是</p>
+<p>
+<script type="math/tex; mode=display">
+f_\theta: \mathbb{R}^{30} \to \mathbb{R}^2, \quad \hat{\mathbf{y}}_t = f_\theta(\mathbf{x}_t)
+</script>
+</p>
+<p><strong>为什么这是有意义的任务</strong>：单看加速度计，静止时重力在机体系的投影就能直接算出 <code>roll</code> / <code>pitch</code>：</p>
+<p>
+<script type="math/tex; mode=display">
+\text{roll} \approx \arctan_2(a_y, a_z), \quad \text{pitch} \approx \arctan_2(-a_x, \sqrt{a_y^2 + a_z^2})
+</script>
+</p>
+<p>但一旦机体在加速飞行，<code>a</code> 里就混进了运动加速度，"哪个方向是重力"这件事变得不可靠。而单看陀螺仪，角速度积分能给出短期姿态却会漂移。网络拿 5 帧同时看到两者，学的是<strong>在带运动加速度干扰时如何借助角速度的短期变化去修正姿态</strong>——这正是互补滤波要解决的事，只是权重由数据学出来而不是人工给定。</p>
+<h2 id="4">4. 网络结构</h2>
+<div class="highlight"><pre><span></span><code>输入 x (30 维)
+  │
+  ├─ 标准化:  x̂ = (x - x_mean) / x_std
+  │
+Linear(30 → 32) → tanh
+  │
+Linear(32 → 2)  ← 线性输出
+  │
+反标准化:  ŷ = out * y_std + y_mean
+  │
+输出 roll, pitch (2 维, 弧度)
+</code></pre></div>
+<p>参数量：<code>30×32 + 32 + 32×2 + 2 = 1058</code>。</p>
+<p>设计要点：</p>
+<ul>
+<li><strong>输入必须标准化</strong>。IMU 的加速度量级在 5~10 m/s²，角速度不足 1 rad/s，尺度差一个量级。不标准化会让 tanh 隐层直接饱和到 ±1，梯度归零。</li>
+<li><strong>输出层用线性而不是 tanh</strong>。<code>roll</code> / <code>pitch</code> 在平飞时集中在 0 附近，若输出层用 tanh，网络会一直输出 0 附近的饱和值，梯度被 <code>1 - tanh²</code> 压到极小，训练塌成常数解。改成线性输出后梯度能正常回传。</li>
+<li><strong>标签做 z-score</strong>。同理，标签标准差只有 0.02~0.05 rad，若直接回归原始弧度，MSE 量级太小、学习率难以适配；标准化到均值 0、方差 1 后训练稳定，推理时再反变换回弧度。</li>
+</ul>
+<p>前向传播（隐层 tanh、输出线性）：</p>
+<p>
+<script type="math/tex; mode=display">
+\mathbf{h} = \tanh(\mathbf{W}_1^\top \hat{\mathbf{x}} + \mathbf{b}_1), \quad
+\hat{\mathbf{y}}_\text{norm} = \mathbf{W}_2^\top \mathbf{h} + \mathbf{b}_2
+</script>
+</p>
+<p>损失取 MSE：</p>
+<p>
+<script type="math/tex; mode=display">
+\mathcal{L} = \frac{1}{2}\sum_{k=1}^{2} \big(\hat{y}_{\text{norm},k} - y_{\text{norm},k}\big)^2
+</script>
+</p>
+<p>反向传播逐层回传（输出层线性，所以 <code>dout = 2(err)</code> 直接作为输出层梯度），Adam 更新：</p>
+<p>
+<script type="math/tex; mode=display">
+\mathbf{W}_i \leftarrow \mathbf{W}_i - \eta \frac{\hat{m}_i}{\sqrt{\hat{v}_i} + \epsilon}
+</script>
+</p>
+<p>其中 <code>m̂</code>、<code>v̂</code> 是带偏差修正的一阶、二阶矩估计，学习率 <code>η = 1e-3</code>。</p>
+<h2 id="5">5. 算法流程</h2>
+<div class="highlight"><pre><span></span><code>① 起飞摆位
+   reset(x, y, z=-5, yaw) → simSetVehiclePose → moveToZAsync 钉住高度
+   ↓
+② 逐回合飞行采样（6 回合 × 110 步）
+   for t in range(steps):
+       下发指令 moveByVelocityAsync(v*cos(yaw), v*sin(yaw), vz, 0.25, 偏航速率) 且不等待
+       ├─ sleep 0.14 s   ← 关键：在指令执行中段采样
+       ├─ 读 IMU 窗 (30 维)
+       ├─ 读真值姿态 (roll, pitch)
+       ├─ 存样本
+       ├─ sleep 0.11 s
+       └─ fut.join()
+   ↓
+③ 训练
+   输入 z-score → 标签 z-score
+   按 85% / 15% 划分训练集与验证集
+   for epoch in 120:
+       for 每个训练样本（逐样本更新）:
+           前向 → MSE → 反向 → Adam
+       每 epoch 算验证 MSE，保留最优权重
+   ↓
+④ 实飞演示
+   螺旋航线（偏航速率 = 0.7 * sin(2πt/60)，速度 1.6 m/s）
+   每步：下指令 → 睡 0.14 s → 取 IMU 窗 → 网络估计 → 读真值 → 记误差 → 存一帧画面 → 睡 0.11 s → join
+   结束降落，补 10 帧
+   ↓
+⑤ 合成 gif
+   PIL 逐帧转 P 模式 128 色，超 10 MB 自动抽帧
+</code></pre></div>
+<p><strong>"中段采样"是这套流程最关键的一步</strong>。若在 <code>fut.join()</code> 之后才读 IMU 和姿态，无人机已经停稳，姿态回到水平、角速度归零，采到的全是接近 0 的样本；网络学不到"倾斜"长什么样，实飞时也估不出倾角。因此在指令下发后、执行结束前读传感器，此时机体正处于倾斜飞行状态。</p>
+<h2 id="6">6. 实验结果</h2>
+<h3 id="61">6.1 数据集</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>样本数</td>
+<td>660（6 回合 × 110 步）</td>
+</tr>
+<tr>
+<td>每回合起点</td>
+<td>x ∈ [−8, −4]，y ∈ [−2, 2]，z = −5 m，偏航随机 ±40°</td>
+</tr>
+<tr>
+<td>飞行参数</td>
+<td>速度 U(0.4, 2.6) m/s，偏航速率 U(−0.8, 0.8) rad/s</td>
+</tr>
+<tr>
+<td>roll 范围</td>
+<td>−0.053 ~ 0.046 rad</td>
+</tr>
+<tr>
+<td>pitch 范围</td>
+<td>−0.179 ~ 0.118 rad</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62">6.2 训练过程</h3>
+<table>
+<thead>
+<tr>
+<th>epoch</th>
+<th>训练 MSE（标准化后）</th>
+<th>验证 MSE（标准化后）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0.792</td>
+<td>0.569</td>
+</tr>
+<tr>
+<td>20</td>
+<td>0.143</td>
+<td>0.460</td>
+</tr>
+<tr>
+<td>60</td>
+<td>0.047</td>
+<td>0.553</td>
+</tr>
+<tr>
+<td>119</td>
+<td>0.021</td>
+<td>0.665</td>
+</tr>
+</tbody>
+</table>
+<p>训练 MSE 持续下降而验证 MSE 先降后升，是典型的过拟合曲线。按验证 MSE 保留最优权重（出现在 epoch 20 前后），最优验证 MSE 0.441（标准化尺度）。</p>
+<h3 id="63">6.3 最终指标（回原始弧度报告）</h3>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>验证 MSE</td>
+<td>5.85e-4 rad²</td>
+</tr>
+<tr>
+<td>验证 MAE</td>
+<td>0.0175 rad（1.0°）</td>
+</tr>
+<tr>
+<td>验证 R²</td>
+<td><strong>0.631</strong></td>
+</tr>
+</tbody>
+</table>
+<p>
+<script type="math/tex; mode=display">
+R^2 = 1 - \frac{\sum_k (y_k - \hat{y}_k)^2}{\sum_k (y_k - \bar{y})^2} = 0.631
+</script>
+</p>
+<p>R² 0.631 意味着网络解释了 63% 的姿态方差。这个数字没有被"完美拟合"掩盖：如果是直接读真值造成的退化，R² 会是 1.000 附近（本项目中途曾选过一个"下视深度→对地高度"的题目，离线 R² 达到 1.000，但根因是 AirSim 的 <code>DepthPlanar</code> 本身就是真实物理深度、等于读真值，已主动放弃）。0.631 对应的是真实存在、尚未完全解决的回归误差。</p>
+<h3 id="64">6.4 实飞演示</h3>
+<p>150 步螺旋航线，平均 MAE <strong>0.9°</strong>，与离线 1.0° 基本一致。这一点很重要：很多"离线指标好、实飞崩掉"的案例，根因是采集状态与演示状态不同（例如摆位采集 vs 飞行演示）。本项目从一开始就用飞行中采样，所以两条曲线贴合。</p>
+<h2 id="7">7. 源码解析</h2>
+<h3 id="envpy"><code>env.py</code> —— 环境与传感器封装</h3>
+<div class="highlight"><pre><span></span><code><span class="n">IMU_DIM</span> <span class="o">=</span> <span class="mi">6</span>      <span class="c1"># ax, ay, az, gx, gy, gz</span>
+<span class="n">WINDOW</span> <span class="o">=</span> <span class="mi">5</span>       <span class="c1"># 时序窗长度</span>
+<span class="n">ATT_SCALE</span> <span class="o">=</span> <span class="mf">1.0</span>
+</code></pre></div>
+<p><code>ImuAttEnv.imu()</code> 一次读 6 轴，返回 6 维向量；<code>imu_window()</code> 维护一个 <code>deque(maxlen=5)</code>，每调一次推入一帧并返回展平的 30 维；窗口不足 5 帧时用首帧补齐，保证第一次调用就能出合法输入。</p>
+<p>四元数转欧拉角是独立函数，便于单元测试：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">euler_from_quat</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">q</span>
+    <span class="n">roll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span><span class="p">),</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">))</span>
+    <span class="n">pitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="n">z</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">roll</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span>
+</code></pre></div>
+<p><code>pitch</code> 用 <code>arcsin</code> 而不是 <code>arctan2</code>，必须 <code>clip</code> 到 [−1, 1]，否则浮点误差会让 <code>arcsin</code> 收到 1.0000001 抛 NaN。</p>
+<p><code>fly()</code> 是世界坐标系下的速度指令 + 机头方向分解：</p>
+<div class="highlight"><pre><span></span><code><span class="n">fut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">moveByVelocityAsync</span><span class="p">(</span>
+    <span class="nb">float</span><span class="p">(</span><span class="n">forward</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">yaw</span><span class="p">)),</span>
+    <span class="nb">float</span><span class="p">(</span><span class="n">forward</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">yaw</span><span class="p">)),</span>
+    <span class="n">vz</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">duration</span><span class="p">),</span>
+    <span class="n">yaw_mode</span><span class="o">=</span><span class="n">airsim</span><span class="o">.</span><span class="n">YawMode</span><span class="p">(</span><span class="n">is_rate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">yaw_or_rate</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">yaw_rate</span><span class="p">)),</span>
+    <span class="n">vehicle_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vehicle</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>moveByVelocityAsync</code> 的 <code>vx</code> / <code>vy</code> 是<strong>世界系分量</strong>，不是机体系，所以必须按当前偏航角把"机头方向的 forward"旋转到世界系。高度用比例闭环 <code>vz = clip(0.8 * (z_target - z_now), ±1.5)</code> 钉住，避免发散。</p>
+<p><code>wait=False</code> 返回 future 交给调用方，这是中段采样的前提。</p>
+<h3 id="mlppy-numpy-mlp-adam"><code>mlp.py</code> —— 纯 NumPy 的 MLP 与 Adam</h3>
+<p><code>forward()</code> 把每层输出缓存进 <code>self.cache</code>，<code>backward()</code> 用 <code>np.outer</code> 算权重梯度：</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dout</span><span class="p">):</span>
+    <span class="n">grads_W</span><span class="p">,</span> <span class="n">grads_b</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">dout</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">h_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">grads_W</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">h_prev</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="n">grads_b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">d</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p><code>np.outer(h_prev, d)</code> 就是 <code>h_prev ⊗ d</code>，即第 <code>i</code> 层的权重梯度；<code>if i &gt; 0</code> 才乘 tanh 导数，因为输出层是线性、最后一层隐层之后的梯度不需要再过一次激活导数。</p>
+<p><code>Adam.step()</code> 带偏差修正，<code>t</code> 每次调用自增，<code>m̂ = m / (1 - β₁ᵗ)</code>、<code>v̂ = v / (1 - β₂ᵗ)</code>。</p>
+<h3 id="datasetpy"><code>dataset.py</code> —— 飞行中采集</h3>
+<div class="highlight"><pre><span></span><code><span class="n">fut</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">fly</span><span class="p">(</span><span class="n">speed</span><span class="p">,</span> <span class="n">yaw_rate</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.14</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">imu_window</span><span class="p">()</span>
+<span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">attitude</span><span class="p">()</span>
+<span class="n">X</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">);</span> <span class="n">Y</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span><span class="p">])</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.11</span><span class="p">)</span>
+<span class="n">fut</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</code></pre></div>
+<p>0.14 s 落在 0.25 s 指令的中段——机体已经加速到目标速度、倾角建立起来，但还没开始减速。这是"能采到倾斜姿态"的时间窗口。</p>
+<h3 id="trainpy"><code>train.py</code> —— 双向标准化与最优权重</h3>
+<div class="highlight"><pre><span></span><code><span class="n">x_mean</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x_std</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span>
+<span class="n">y_mean</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y_std</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span>
+</code></pre></div>
+<p><code>+1e-6</code> 防止某维方差为 0 时除零。标准化参数随权重一起存进 <code>attitude.npz</code>，推理时必须用同一套参数，否则尺度错位。</p>
+<p>训练循环逐样本更新且按验证 MSE 留最优：</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">best_val</span><span class="p">:</span>
+    <span class="n">best_val</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">params</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</code></pre></div>
+<p><code>v.copy()</code> 不能省略：<code>params()</code> 返回的是对 <code>net.W</code> / <code>net.b</code> 列表元素的引用，不 copy 的话"最优权重"会随训练继续被改写，最后存下来的是最后一轮而非最优轮。</p>
+<h3 id="demopy-gif"><code>demo.py</code> —— 螺旋航线与 gif 合成</h3>
+<p>偏航速率按正弦变化，让机体周期性左右倾斜：</p>
+<div class="highlight"><pre><span></span><code><span class="n">yaw_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mf">0.7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">))</span>
+</code></pre></div>
+<p>周期 60 步，幅度 0.7 rad/s，正好落在训练数据的分布内（±0.8）。</p>
+<p>gif 合成先按 320×240、P 模式 128 色写一次，若超过 10 MB 就按步长抽帧重写：</p>
+<div class="highlight"><pre><span></span><code><span class="n">size</span> <span class="o">=</span> <span class="n">_write_gif</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+<span class="n">step</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="k">while</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">8</span><span class="p">:</span>
+    <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[::</span><span class="n">step</span><span class="p">]</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">_write_gif</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">70</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+</code></pre></div>
+<p>抽帧时同步放大 <code>duration</code>，保证播放速度不变。</p>
+<h3 id="nodepy-ros2"><code>node.py</code> —— ROS2 封装</h3>
+<p>订阅 <code>sensor_msgs/Imu</code>，把每帧拼进长度 5 的滑动窗，凑满后送网络，发布 <code>std_msgs/Float32MultiArray</code>：</p>
+<div class="highlight"><pre><span></span><code><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buf</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">forward</span><span class="p">(((</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_mean</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_std</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+<span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_std</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_mean</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+</code></pre></div>
+<p>权重路径通过 <code>declare_parameter("weights")</code> 暴露，launch 里传 <code>share</code> 目录下的绝对路径。</p>
+<h2 id="8">8. 踩坑记录</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>现象</th>
+<th>根因</th>
+<th>修法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>采到的姿态几乎全是 0</td>
+<td>在 <code>fut.join()</code> 之后才读传感器，机体已停稳</td>
+<td>改成指令中段采样：下指令 → 睡 0.14 s → 读传感器 → 睡 0.11 s → join</td>
+</tr>
+<tr>
+<td>2</td>
+<td>训练塌成常数，验证 R² 为负</td>
+<td>输出层 tanh 在标签集中在 0 附近时饱和，梯度消失</td>
+<td>输出层改线性 + 标签 z-score</td>
+</tr>
+<tr>
+<td>3</td>
+<td>验证集上和训练集上一个天一个地</td>
+<td>660 样本对 30 维输入偏少，过拟合</td>
+<td>按验证 MSE 保留最优权重（<code>v.copy()</code>）</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>arcsin</code> 偶发 NaN</td>
+<td>浮点误差导致入参略大于 1</td>
+<td><code>np.clip(..., -1.0, 1.0)</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>无人机越飞越偏、画面里看不到墙</td>
+<td><code>moveByVelocityAsync</code> 的 vx/vy 是世界系分量，直接传机头前向会打斜</td>
+<td>按偏航角分解：<code>vx = forward*cos(yaw)</code>、<code>vy = forward*sin(yaw)</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>高度持续下沉</td>
+<td>速度指令的 vz 不是位置设定点</td>
+<td><code>vz = clip(0.8*(z_target - z_now), ±1.5)</code> 比例闭环</td>
+</tr>
+<tr>
+<td>7</td>
+<td>曾选的"下视深度→对地高度"R² 达 1.000</td>
+<td>AirSim 的 <code>DepthPlanar</code> 是真值深度，用深度估高度等于读真值</td>
+<td>该选题本身退化，主动放弃，改做姿态估计</td>
+</tr>
+<tr>
+<td>8</td>
+<td>悬停采集的模型实飞恒输出常数</td>
+<td>悬停时机体水平、实飞时机体前倾，深度图分布完全不同</td>
+<td>采集与演示统一为飞行中采样</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9">9. 复现步骤</h2>
+<h3 id="91">9.1 环境</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># AirSim v1.8.1（Windows 建议下载 Blocks 预编译包）</span>
+curl<span class="w"> </span>--ssl-no-revoke<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>Blocks.zip<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>https://github.com/microsoft/AirSim/releases/download/v1.8.1-windows/Blocks.zip
+
+<span class="c1"># Python 依赖</span>
+pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>pillow<span class="w"> </span>imageio<span class="w"> </span>airsim
+</code></pre></div>
+<p><code>~/Documents/AirSim/settings.json</code> 需要有 <code>SimMode: "Multirotor"</code> 和多旋翼载具定义（本实验用 <code>Drone1</code>、<code>SimpleFlight</code>）。</p>
+<h3 id="92">9.2 运行</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 启动仿真后等 10~45 秒，确认 41451 端口在 LISTEN</span>
+python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import airsim; c=airsim.MultirotorClient(); c.confirmConnection(); print('ok')"</span>
+
+<span class="nb">cd</span><span class="w"> </span>src/air/uav_airsim_attitude_estimator
+python3<span class="w"> </span>main.py<span class="w"> </span>--collect<span class="w"> </span>--episodes<span class="w"> </span><span class="m">6</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">110</span>
+python3<span class="w"> </span>main.py<span class="w"> </span>--train<span class="w"> </span>--epochs<span class="w"> </span><span class="m">120</span><span class="w"> </span>--lr<span class="w"> </span><span class="m">0</span>.001
+python3<span class="w"> </span>main.py<span class="w"> </span>--demo<span class="w"> </span>--steps<span class="w"> </span><span class="m">150</span><span class="w"> </span>--gif<span class="w"> </span>demo.gif
+</code></pre></div>
+<p>采集约 6 分钟、训练约 1 分钟、演示约 1 分钟。</p>
+<h3 id="93-ros2">9.3 ROS2 集成</h3>
+<div class="highlight"><pre><span></span><code>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>uav_airsim_attitude_estimator
+<span class="nb">source</span><span class="w"> </span>install/setup.bash
+ros2<span class="w"> </span>launch<span class="w"> </span>uav_airsim_attitude_estimator<span class="w"> </span>main.launch.py
+</code></pre></div>
+<p>需要一个把 AirSim IMU 转发到 <code>/uav/imu</code> 的桥接节点（本实验用 Python 直连 AirSim 的方式采集，ROS2 节点部分按标准话题接口实现）。</p>
+<h3 id="94">9.4 复现核对点</h3>
+<ul>
+<li>采集完打印的样本数与标签范围应与第 6.1 节一致（660 条、roll ±0.05 rad 量级）</li>
+<li>训练完的验证 R² 应在 0.5~0.7 之间。<strong>如果出现 1.000，说明标签泄漏了</strong>，检查是否误把真值当输入</li>
+<li>演示 MAE 应在 1° 左右。<strong>如果明显高于离线误差</strong>，检查采集与演示的飞行状态是否一致</li>
+</ul>
+<h2 id="10">10. 局限与改进方向</h2>
+<ol>
+<li><strong>roll 幅度受场景限制</strong>。Blocks 只有方块墙和球体，<code>moveByVelocityAsync</code> 在低速下侧倾仅 ±3°，roll 标签方差远小于 pitch。要真正验证 roll 估计，需要换一个能做横滚机动的场景或直接给角速度指令。</li>
+<li><strong>样本量不足</strong>。660 条对应 1058 个参数，过拟合明显。加数据增广（对 IMU 加噪声、时间轴抖动）或减小隐层宽度都可能改善泛化。</li>
+<li><strong>只覆盖低机动</strong>。速度 0.4~2.6 m/s、偏航速率 ±0.8 rad/s。大机动下加速度计的重力方向判断会失效得更彻底，需要专门采集。</li>
+<li><strong>IMU 为理想传感器</strong>。AirSim 的 <code>getImuData</code> 不含温漂、量化噪声、轴间不正交等实机特性。迁移到实机应在训练时注入噪声模型，或用实采数据微调。</li>
+<li><strong>无时间一致性约束</strong>。网络逐帧独立输出，没有利用姿态的连续性。加一层时序平滑（如输出端加一阶低通或改用 GRU / 一维卷积）能压低抖动。</li>
+</ol></div>
+</div>
+</div><footer>
+<hr/>
+<div role="contentinfo">
+<!-- Copyright etc -->
+<p>OpenHUTB 版权所有 © 2026</p>
+</div>
+</footer>
+</div>
+</div>
+</section>
+</div>
+<div aria-label="Versions" class="rst-versions" role="note">
+<span class="rst-current-version" data-toggle="rst-current-version">
+<span>
+<a href="https://github.com/OpenHUTB/ros2" style="color: #fcfcfc">OpenHUTB</a>
+</span>
+</span>
+</div>
+<script src="../../js/jquery-3.6.0.min.js"></script>
+<script>var base_url = "../..";</script>
+<script src="../../js/theme_extra.js"></script>
+<script src="../../js/theme.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-sequence-diagrams/1.0.6/sequence-diagram-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script>
+<script src="../../js/umlconvert.js"></script>
+<script src="../../search/main.js"></script>
+<script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+</body>
+</html>
